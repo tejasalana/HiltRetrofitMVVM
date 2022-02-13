@@ -21,17 +21,22 @@ class MainViewModel @ViewModelInject constructor(
         get() = _res
 
     init {
-        getEmployees()
+        getPosts()
     }
 
-    private fun getEmployees() = viewModelScope.launch {
+    fun getPosts() = viewModelScope.launch {
         _res.postValue(Resource.loading(null))
-        mainRepository.getPosts().let {
-            if (it.isSuccessful) {
-                _res.postValue(Resource.success(it))
-            } else {
-                _res.postValue(Resource.error("", null))
+        try {
+            mainRepository.getPosts().let {
+                if (it.isSuccessful) {
+                    _res.postValue(Resource.success(it))
+                } else {
+                    _res.postValue(Resource.error("", null))
+                }
             }
+        } catch(e: Exception){
+            _res.postValue(Resource.error("", null))
         }
+
     }
 }

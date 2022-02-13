@@ -5,11 +5,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import com.example.hiltretrofitmvvm.databinding.ActivityMainBinding
 import com.example.hiltretrofitmvvm.utils.Status
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -28,12 +26,16 @@ class MainActivity : AppCompatActivity() {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = postAdapter
         }
+        binding.retry.setOnClickListener {
+            mainViewModel.getPosts()
+        }
 
         mainViewModel.res.observe(this, {
             when (it.status) {
                 Status.SUCCESS -> {
                     binding.progress.visibility = View.GONE
                     binding.errorMessage.visibility = View.GONE
+                    binding.retry.visibility = View.GONE
                     binding.recyclerView.visibility = View.VISIBLE
                     if (!it.data?.body().isNullOrEmpty()) {
                         it.data?.body()?.let { it1 ->
@@ -45,14 +47,18 @@ class MainActivity : AppCompatActivity() {
                     binding.progress.visibility = View.VISIBLE
                     binding.recyclerView.visibility = View.GONE
                     binding.errorMessage.visibility = View.GONE
+                    binding.retry.visibility = View.GONE
                 }
                 Status.ERROR -> {
                     binding.errorMessage.visibility = View.VISIBLE
                     binding.progress.visibility = View.GONE
                     binding.recyclerView.visibility = View.GONE
-                    binding.errorMessage.text = it.message
-                    Snackbar.make(binding.root, "Something went wrong", Snackbar.LENGTH_SHORT)
-                        .show()
+                    binding.retry.visibility = View.VISIBLE
+                    binding.errorMessage.text = if (it.message.isNullOrEmpty()) {
+                        "Unable to connect to server. Please check your internet connection and try again"
+                    } else {
+                        it.message
+                    }
                 }
             }
         })
